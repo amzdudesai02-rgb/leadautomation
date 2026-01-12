@@ -10,10 +10,17 @@ def create_app():
     # Initialize database
     init_db(app)
     
-    # Enable CORS for React frontend
+    # Enable CORS for React frontend and Render deployment
+    cors_origins = Config.CORS_ORIGINS.copy() if isinstance(Config.CORS_ORIGINS, list) else Config.CORS_ORIGINS.split(',')
+    cors_origins.extend([
+        "https://*.onrender.com",
+        "https://*.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ])
     CORS(app, resources={
         r"/api/*": {
-            "origins": ["http://localhost:3000", "http://localhost:5173"],
+            "origins": cors_origins,
             "methods": ["GET", "POST", "PUT", "DELETE"],
             "allow_headers": ["Content-Type", "Authorization"]
         }
