@@ -118,3 +118,42 @@ def delete_seller(seller_id, current_user):
     except Exception as e:
         return handle_error(e)
 
+@bp.route('/snipe', methods=['POST'])
+@token_required
+def snipe_seller(current_user):
+    """
+    Seller Sniping - 70% Automated
+    Bot scrapes storefront, extracts brands, cross-checks database, adds to research queue
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'url' not in data:
+            return jsonify({
+                'success': False,
+                'message': 'Seller URL is required'
+            }), 400
+        
+        seller_url = data['url']
+        auto_queue = data.get('auto_queue', True)  # Default to auto-queue
+        
+        # Validate URL
+        if not validate_url(seller_url):
+            return jsonify({
+                'success': False,
+                'message': 'Invalid URL format'
+            }), 400
+        
+        # Run seller sniping automation
+        result = seller_service.snipe_seller(seller_url, current_user.id, auto_queue=auto_queue)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Seller sniping completed (70% Automated)',
+            'data': result,
+            'automation_percentage': result.get('automation_percentage', 70)
+        }), 200
+        
+    except Exception as e:
+        return handle_error(e)
+
