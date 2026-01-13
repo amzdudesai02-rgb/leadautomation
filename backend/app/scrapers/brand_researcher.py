@@ -7,6 +7,7 @@ import time
 from app.utils.logger import get_logger
 from app.services.domain_validator_service import DomainValidatorService
 from app.services.email_finder_service import EmailFinderService
+from app.scrapers.brand_website_scraper import BrandWebsiteScraper
 
 logger = get_logger(__name__)
 
@@ -15,17 +16,62 @@ class BrandResearcher:
         self.driver = None
         self.domain_validator = DomainValidatorService()
         self.email_finder = EmailFinderService()
+        self.website_scraper = BrandWebsiteScraper()  # Enhanced scraper
     
-    def research(self, brand_name):
-        """Research brand information"""
+    def research(self, brand_name, use_enhanced_scraper=True):
+        """
+        Research brand information - 80% Automated
+        Uses enhanced website scraper for comprehensive data extraction
+        """
         try:
-            logger.info(f"Researching brand: {brand_name}")
+            logger.info(f"Researching brand: {brand_name} (80% automated)")
             
+            # Find domain first
+            domain = self._find_domain(brand_name)
+            
+            # Use enhanced website scraper for comprehensive data
+            if use_enhanced_scraper and domain:
+                logger.info("Using enhanced website scraper...")
+                scraped_data = self.website_scraper.scrape_brand_website(domain, brand_name)
+                
+                # Convert to standard format
+                brand_data = {
+                    'name': scraped_data.get('brand_name', brand_name),
+                    'domain': scraped_data.get('domain', domain),
+                    'website_url': scraped_data.get('website_url', domain),
+                    'email': scraped_data['data']['emails']['primary'] or scraped_data['data']['emails']['contact'] or '',
+                    'phone': scraped_data['data']['phone']['primary'] or '',
+                    'address': scraped_data['data']['address']['full'] or '',
+                    'social_media': {
+                        'linkedin': scraped_data['data']['social_media'].get('linkedin', ''),
+                        'instagram': scraped_data['data']['social_media'].get('instagram', ''),
+                        'facebook': scraped_data['data']['social_media'].get('facebook', ''),
+                        'twitter': scraped_data['data']['social_media'].get('twitter', ''),
+                        'tiktok': scraped_data['data']['social_media'].get('tiktok', ''),
+                        'youtube': scraped_data['data']['social_media'].get('youtube', ''),
+                    },
+                    'company_info': scraped_data['data']['company_info'],
+                    'key_personnel': scraped_data['data']['key_personnel'],
+                    'automation_percentage': scraped_data.get('automation_percentage', 0),
+                    'needs_verification': scraped_data.get('needs_verification', True),
+                    'all_emails_found': scraped_data['data']['emails']['all_found'],
+                    'verified_emails': scraped_data['data']['emails']['verified'],
+                    'all_phones_found': scraped_data['data']['phone']['all_found'],
+                    'created_at': time.strftime('%Y-%m-%d %H:%M:%S')
+                }
+                
+                logger.info(f"Brand research completed. Automation: {brand_data['automation_percentage']}%")
+                return brand_data
+            
+            # Fallback to basic research
+            logger.info("Using basic research method...")
             brand_data = {
                 'name': brand_name,
-                'domain': self._find_domain(brand_name),
+                'domain': domain,
                 'social_media': self._find_social_media(brand_name),
                 'email': self._find_email(brand_name),
+                'automation_percentage': 50,  # Basic method is less automated
+                'needs_verification': True,
                 'created_at': time.strftime('%Y-%m-%d %H:%M:%S')
             }
             
