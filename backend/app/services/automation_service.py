@@ -2,6 +2,7 @@ from app.services.google_sheets_service import GoogleSheetsService
 from app.services.duplicate_detector_service import DuplicateDetectorService
 from app.services.data_validation_service import DataValidationService
 from app.services.reporting_service import ReportingService
+from app.scrapers.smartscout_scraper import SmartScoutScraper
 from app.utils.logger import get_logger
 from datetime import datetime
 
@@ -15,25 +16,106 @@ class AutomationService:
         self.duplicate_detector = DuplicateDetectorService()
         self.data_validator = DataValidationService()
         self.reporting_service = ReportingService()
+        self.smartscout_scraper = SmartScoutScraper()
     
-    def morning_setup(self):
-        """Automated morning setup tasks"""
+    def morning_setup(self, smartscout_enabled=True, brand_count=100):
+        """Automated morning setup tasks - 90% Automated"""
         try:
             logger.info("Starting morning setup automation...")
             results = {
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'smartscout_extraction': None,
+                'google_sheets_population': None,
+                'duplicate_detection': None,
                 'account_auth': self._check_account_authentication(),
-                'spreadsheet_updates': self._update_spreadsheets(),
-                'duplicate_detection': self._detect_and_flag_duplicates(),
-                'data_validation': self._validate_all_data(),
-                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             
-            logger.info("Morning setup completed successfully")
+            # Step 1: SmartScout Automation (90% Automated)
+            if smartscout_enabled:
+                logger.info("🤖 Starting SmartScout automation...")
+                smartscout_result = self._run_smartscout_automation(brand_count)
+                results['smartscout_extraction'] = smartscout_result
+                
+                if smartscout_result.get('success'):
+                    brands = smartscout_result.get('brands', [])
+                    logger.info(f"✅ Extracted {len(brands)} brands from SmartScout")
+                    
+                    # Step 2: Populate Google Sheets
+                    logger.info("📊 Populating Google Sheets...")
+                    sheets_result = self._populate_google_sheets(brands)
+                    results['google_sheets_population'] = sheets_result
+                    
+                    # Step 3: Check for duplicates and flag them
+                    logger.info("🔍 Checking for duplicates...")
+                    duplicate_result = self._detect_and_flag_duplicates()
+                    results['duplicate_detection'] = duplicate_result
+                else:
+                    logger.error(f"❌ SmartScout automation failed: {smartscout_result.get('error')}")
+            else:
+                logger.info("⏭️ SmartScout automation skipped")
+                results['smartscout_extraction'] = {'success': False, 'reason': 'disabled'}
+            
+            # Additional tasks
+            results['spreadsheet_updates'] = self._update_spreadsheets()
+            results['data_validation'] = self._validate_all_data()
+            
+            logger.info("✅ Morning setup completed successfully")
             return results
             
         except Exception as e:
             logger.error(f"Error in morning setup: {str(e)}")
-            return {'error': str(e)}
+            return {'error': str(e), 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+    
+    def _run_smartscout_automation(self, brand_count=100):
+        """Run SmartScout automation: Open, apply filters, extract brands"""
+        try:
+            # Default filters (can be customized)
+            filters = {
+                'country': 'US',
+                'min_products': 1,
+                # Add more filters as needed
+            }
+            
+            # Run automation
+            result = self.smartscout_scraper.run_automation(
+                filters=filters,
+                brand_count=brand_count
+            )
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error running SmartScout automation: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
+    def _populate_google_sheets(self, brands):
+        """Populate Google Sheets with extracted brands"""
+        try:
+            if not brands:
+                return {'status': 'skipped', 'reason': 'No brands to populate'}
+            
+            saved_count = 0
+            failed_count = 0
+            
+            for brand in brands:
+                try:
+                    # Save brand to Google Sheets
+                    self.sheets_service.save_brand(brand)
+                    saved_count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to save brand {brand.get('name')}: {str(e)}")
+                    failed_count += 1
+            
+            return {
+                'status': 'completed',
+                'saved': saved_count,
+                'failed': failed_count,
+                'total': len(brands)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error populating Google Sheets: {str(e)}")
+            return {'status': 'error', 'error': str(e)}
     
     def end_of_day_tasks(self):
         """Automated end of day tasks"""

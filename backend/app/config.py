@@ -50,6 +50,11 @@ class Config:
     # CORS Configuration
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')
     
+    # SmartScout Configuration (Optional - for morning automation)
+    SMARTSCOUT_USERNAME = os.environ.get('SMARTSCOUT_USERNAME')
+    SMARTSCOUT_PASSWORD = os.environ.get('SMARTSCOUT_PASSWORD')
+    SMARTSCOUT_URL = os.environ.get('SMARTSCOUT_URL', 'https://app.smartscout.com')
+    
     # Logging
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
 

@@ -13,12 +13,23 @@ backup_service = BackupService()
 
 @bp.route('/morning-setup', methods=['POST'])
 def morning_setup():
-    """Run morning setup automation"""
+    """Run morning setup automation - SmartScout + Google Sheets + Duplicate Detection"""
     try:
-        results = automation_service.morning_setup()
+        from flask import request
+        data = request.get_json() or {}
+        
+        # Get parameters
+        smartscout_enabled = data.get('smartscout_enabled', True)
+        brand_count = data.get('brand_count', 100)
+        
+        results = automation_service.morning_setup(
+            smartscout_enabled=smartscout_enabled,
+            brand_count=brand_count
+        )
+        
         return jsonify({
             'success': True,
-            'message': 'Morning setup completed',
+            'message': 'Morning setup completed (90% Automated)',
             'data': results
         }), 200
     except Exception as e:
