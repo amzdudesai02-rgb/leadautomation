@@ -177,6 +177,16 @@ class DatabaseService:
             return None
     
     @staticmethod
+    def get_brand_by_name(brand_name):
+        """Get brand by name (case-insensitive)"""
+        try:
+            brand = Brand.query.filter(Brand.name.ilike(brand_name.strip())).first()
+            return brand.to_dict() if brand else None
+        except Exception as e:
+            logger.error(f"Error getting brand by name: {str(e)}")
+            return None
+    
+    @staticmethod
     def save_brand(brand_data, user_id=None):
         """Save brand to database"""
         try:
