@@ -100,9 +100,11 @@ class TaskScheduler:
         try:
             logger.info("Running scheduled weekly summary...")
             # Get manager emails from config
-            manager_emails = []  # Would come from config
+            manager_emails = Config.MANAGER_EMAILS if hasattr(Config, 'MANAGER_EMAILS') and Config.MANAGER_EMAILS else []
             if manager_emails:
                 self.reporting_service.send_weekly_summary_to_managers(manager_emails)
+            else:
+                logger.warning("No manager emails configured for weekly summary")
         except Exception as e:
             logger.error(f"Error in weekly summary job: {str(e)}")
     
