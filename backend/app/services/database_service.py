@@ -264,4 +264,31 @@ class DatabaseService:
         except Exception as e:
             logger.error(f"Error getting QA metrics: {str(e)}")
             return {}
+    
+    @staticmethod
+    def get_qa_analyses(page=1, limit=50, filters=None):
+        """Get QA analyses with pagination"""
+        try:
+            query = QAAnalysis.query
+            
+            # Apply filters
+            if filters:
+                if filters.get('status'):
+                    query = query.filter(QAAnalysis.status == filters['status'])
+                if filters.get('brand_id'):
+                    query = query.filter(QAAnalysis.brand_id == filters['brand_id'])
+            
+            total = query.count()
+            analyses = query.order_by(desc(QAAnalysis.created_at)).offset((page - 1) * limit).limit(limit).all()
+            
+            return {
+                'data': [analysis.to_dict() for analysis in analyses],
+                'total': total,
+                'page': page,
+                'limit': limit,
+                'pages': (total + limit - 1) // limit
+            }
+        except Exception as e:
+            logger.error(f"Error getting QA analyses: {str(e)}")
+            return {'data': [], 'total': 0, 'page': page, 'limit': limit, 'pages': 0}
 

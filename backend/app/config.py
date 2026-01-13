@@ -46,6 +46,7 @@ class Config:
     # Gmail Configuration
     GMAIL_USER = os.environ.get('GMAIL_USER')
     GMAIL_PASSWORD = os.environ.get('GMAIL_PASSWORD')
+    MANAGER_EMAILS = os.environ.get('MANAGER_EMAILS', '').split(',') if os.environ.get('MANAGER_EMAILS') else []
     
     # CORS Configuration
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')
