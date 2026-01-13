@@ -55,6 +55,17 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Ignore 404 errors for favicon and other static assets
+    if (error.config?.url && (
+      error.config.url.includes('favicon') ||
+      error.config.url.includes('.svg') ||
+      error.config.url.includes('.ico') ||
+      error.config.url.includes('.png')
+    )) {
+      // Silently ignore static asset 404s
+      return Promise.reject(error)
+    }
+    
     // Log connection errors for debugging
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
       console.error('❌ Connection Error:', error.message)
@@ -63,6 +74,12 @@ apiClient.interceptors.response.use(
       if (API_BASE_URL.includes('localhost')) {
         console.error('⚠️ Make sure VITE_API_URL is set in Vercel environment variables!')
       }
+    }
+    
+    // Log API errors (but not 404s for static assets)
+    if (error.response?.status === 404 && !error.config?.url?.includes('favicon')) {
+      console.error('❌ 404 Not Found:', error.config?.url)
+      console.error('📍 Base URL:', API_BASE_URL)
     }
     
     if (error.response?.status === 401) {
