@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -24,7 +24,7 @@ function Login() {
   const { login, isAuthenticated, loading: authLoading } = useAuth()
 
   // Redirect to dashboard if already authenticated
-  React.useEffect(() => {
+  useEffect(() => {
     if (!authLoading && isAuthenticated) {
       navigate('/', { replace: true })
     }
