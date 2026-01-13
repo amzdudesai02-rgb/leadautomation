@@ -205,11 +205,11 @@ class BrandWebsiteScraper:
     def _extract_from_page(self, soup, base_url, result):
         """Extract information from a page"""
         # Extract emails
-        emails = self._extract_emails(soup, base_url)
+        emails = self._extract_emails(soup, base_url, result)
         result['data']['emails']['all_found'].extend(emails)
         
         # Extract phone numbers
-        phones = self._extract_phones(soup)
+        phones = self._extract_phones(soup, result)
         result['data']['phone']['all_found'].extend(phones)
         
         # Extract addresses
@@ -271,7 +271,7 @@ class BrandWebsiteScraper:
         
         return emails
     
-    def _extract_phones(self, soup):
+    def _extract_phones(self, soup, result=None):
         """Extract phone numbers from page"""
         phones = []
         
@@ -302,7 +302,7 @@ class BrandWebsiteScraper:
         
         unique_phones = list(set(cleaned_phones))
         
-        if unique_phones and not result['data']['phone']['primary']:
+        if result and unique_phones and not result['data']['phone']['primary']:
             result['data']['phone']['primary'] = unique_phones[0]
         
         return unique_phones
