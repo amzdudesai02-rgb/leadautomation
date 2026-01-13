@@ -23,11 +23,24 @@ def create_app():
             "origins": cors_origins,
             "methods": ["GET", "POST", "PUT", "DELETE"],
             "allow_headers": ["Content-Type", "Authorization"]
+        },
+        r"/health": {
+            "origins": "*",
+            "methods": ["GET"]
+        },
+        r"/": {
+            "origins": "*",
+            "methods": ["GET"]
         }
     })
     
     # Register blueprints
-    from app.routes import auth_routes, seller_routes, brand_routes, qa_routes, automation_routes
+    from app.routes import health_routes, auth_routes, seller_routes, brand_routes, qa_routes, automation_routes
+    
+    # Health check (no prefix, accessible at / and /api/health)
+    app.register_blueprint(health_routes.bp)
+    
+    # API routes
     app.register_blueprint(auth_routes.bp, url_prefix='/api/auth')
     app.register_blueprint(seller_routes.bp, url_prefix='/api/sellers')
     app.register_blueprint(brand_routes.bp, url_prefix='/api/brands')
