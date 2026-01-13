@@ -21,7 +21,14 @@ function Login() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, isAuthenticated, loading: authLoading } = useAuth()
+
+  // Redirect to dashboard if already authenticated
+  React.useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate('/', { replace: true })
+    }
+  }, [isAuthenticated, authLoading, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

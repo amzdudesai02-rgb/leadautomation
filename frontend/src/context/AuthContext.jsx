@@ -23,19 +23,26 @@ export const AuthProvider = ({ children }) => {
 
     if (storedToken && storedUser) {
       try {
+        const parsedUser = JSON.parse(storedUser)
         setToken(storedToken)
-        setUser(JSON.parse(storedUser))
+        setUser(parsedUser)
         api.setToken(storedToken)
         
         // Verify token is still valid (don't block if backend is down)
         verifyToken(storedToken)
       } catch (error) {
         // If anything fails, just clear and continue
+        console.error('Error loading auth data:', error)
         localStorage.removeItem('token')
         localStorage.removeItem('user')
+        setToken(null)
+        setUser(null)
         setLoading(false)
       }
     } else {
+      // No stored auth data, user is not authenticated
+      setToken(null)
+      setUser(null)
       setLoading(false)
     }
   }, [])

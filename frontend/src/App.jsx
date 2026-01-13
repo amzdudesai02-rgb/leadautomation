@@ -44,7 +44,10 @@ function App() {
       <Router>
         <AuthProvider>
           <Routes>
+            {/* Public route - Login page */}
             <Route path="/login" element={<Login />} />
+            
+            {/* Protected routes - require authentication */}
             <Route
               path="/"
               element={
@@ -85,7 +88,9 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            
+            {/* Catch-all: redirect to login if not authenticated, otherwise to dashboard */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </AuthProvider>
       </Router>

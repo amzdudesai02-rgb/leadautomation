@@ -1,19 +1,12 @@
 import React from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Box, CircularProgress, Typography } from '@mui/material'
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth()
-  const navigate = useNavigate()
 
-  // Handle logout navigation if needed
-  React.useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate('/login', { replace: true })
-    }
-  }, [loading, isAuthenticated, navigate])
-
+  // Show loading spinner while checking authentication
   if (loading) {
     return (
       <Box
@@ -34,11 +27,13 @@ function ProtectedRoute({ children }) {
     )
   }
 
+  // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
 
-  return children
+  // Render protected content if authenticated
+  return <>{children}</>
 }
 
 export default ProtectedRoute
