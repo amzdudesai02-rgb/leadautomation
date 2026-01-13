@@ -67,6 +67,23 @@ function Login() {
     }
   }
 
+  // Show loading if checking authentication
+  if (authLoading) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        }}
+      >
+        <CircularProgress sx={{ color: 'white' }} />
+      </Box>
+    )
+  }
+
   return (
     <Box
       sx={{
